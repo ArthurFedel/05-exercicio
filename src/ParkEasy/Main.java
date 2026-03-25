@@ -1,5 +1,6 @@
 package ParkEasy;
 
+import java.text.DecimalFormat;
 import java.util.Scanner;
 
 public class Main {
@@ -25,16 +26,51 @@ public class Main {
 
             switch (opcao){
                 case 1 -> registrarEntrada();
+                case 2 -> registrarSaida();
                 case 3 -> veiculosEstacionados();
+                case 4 -> receita();
+                case 5 -> System.out.println("ParkEasy agradece!");
+                default -> System.out.println("Opção inválida!");
             }
 
         } while (opcao != 5);
+        System.out.println();
+    }
+
+    private static void receita() {
+        DecimalFormat df = new DecimalFormat("#,##0.00");
+        double receita = 0;
+        for (int i = 0; i < indexControle; i++) {
+            if (controles[i].horaSaida != null){
+                receita += controles[i].calcularEstadia();
+            }
+        }
+        System.out.println("Receita até o momento R$ " + df.format(receita));
     }
 
     public static void veiculosEstacionados() {
         for (int i = 0; i < indexControle; i++) {
-            System.out.println(controles[i].veiculo.placa);
+            if (controles[i].horaSaida == null){
+                System.out.println(controles[i].veiculo.placa);
+            }
         }
+    }
+
+    private static void registrarSaida() {
+        DecimalFormat df = new DecimalFormat("#,##0.00");
+        Controle controle = pesquisarEstacionados();
+        String horaSaida;
+        double valor;
+
+        if (controle != null){
+            System.out.print("Hora de saída (hh:mm) --> ");
+            horaSaida = sc.next();
+            controle.horaSaida = horaSaida;
+            valor = controle.calcularEstadia();
+            System.out.println("Valor da estadia: R$ " + df.format(valor));
+        }
+
+        System.out.println();
     }
 
     public static void registrarEntrada() {
@@ -42,11 +78,13 @@ public class Main {
        String nome;
        long cpf;
        String horaEntrada;
-       Veiculo veiculo = pesquisar();
+
+        System.out.print("Placa --> ");
+        placa = sc.next().toUpperCase();
+
+       Veiculo veiculo = pesquisar(placa);
 
        if (veiculo == null) {
-           System.out.print("Placa --> ");
-           placa = sc.next().toUpperCase();
            System.out.print("Marca --> ");
            marca = sc.next();
            System.out.print("Modelo --> ");
@@ -56,7 +94,8 @@ public class Main {
            System.out.print("CPF dp proprietário --> ");
            cpf = sc.nextLong();
            Proprietario proprietario = new Proprietario(nome, cpf);
-           veiculos[indexVeiculo] = new Veiculo(marca, modelo, placa, proprietario);
+           veiculo = new Veiculo(marca, modelo, placa, proprietario);
+           veiculos[indexVeiculo] = veiculo;
            indexVeiculo++;
        }
         System.out.print("Hora de entrada (hh:mm) --> ");
@@ -65,8 +104,7 @@ public class Main {
         indexControle++;
     }
 
-    public static Veiculo pesquisar() {
-        String placa;
+    public static Veiculo pesquisar(String placa) {
         System.out.print("Placa para pesquisa --> ");
         placa = sc.next().toUpperCase();
         for (int i = 0; i < indexVeiculo; i++) {
@@ -75,6 +113,19 @@ public class Main {
             }
         }
         System.out.println("Placa não encontrada!");
+        return null;
+    }
+
+    public static Controle pesquisarEstacionados() {
+        String placa;
+        System.out.print("Placa para pesquisa --> ");
+        placa = sc.next().toUpperCase();
+        for (int i = 0; i < indexControle; i++) {
+            if (controles[i].veiculo.placa.equals(placa)){
+                return controles[i];
+            }
+        }
+        System.out.println("Não temos registro do seu carro!");
         return null;
     }
 
